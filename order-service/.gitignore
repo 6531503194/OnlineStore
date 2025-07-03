@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+mysql/*.sock
+mysql/*.pid
+mysql/auto.cnf
+mysql/binlog.index
+mysql/#*
+mysql/*.err
+mysql/ib*
