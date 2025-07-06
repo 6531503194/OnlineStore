@@ -4,28 +4,37 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.techie.microservices.order.client.InventoryClient;
 import com.techie.microservices.order.dto.OrderRequest;
 import com.techie.microservices.order.model.Order;
 import com.techie.microservices.order.repository.OrderRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final InventoryClient inventoryClient;
 
-    public OrderService(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
-    }
-    
+
     public void placeOrder(OrderRequest orderRequest) {
-        // map OrderRequest to Order object
-        Order order = new Order();
-        order.setOrderNumber(UUID.randomUUID().toString());
-        order.setSkuCode(orderRequest.skuCode());
-        order.setPrice(orderRequest.price());
-        order.setQuantity(orderRequest.quantity());
-        // save Order object to OrderRepository
-        orderRepository.save(order);
+
+        var isProductInStock = inventoryClient.isInStock(orderRequest.skuCode(), orderRequest.quantity());
+        if(isProductInStock){
+            // map OrderRequest to Order object
+            Order order = new Order();
+            order.setOrderNumber(UUID.randomUUID().toString());
+            order.setSkuCode(orderRequest.skuCode());
+            order.setPrice(orderRequest.price());
+            order.setQuantity(orderRequest.quantity());
+            // save Order object to OrderRepository
+            orderRepository.save(order);
+        } else {
+            throw new RuntimeException("Product with SkuCode " + orderRequest.skuCode() + "is not in stock with this quantity: " + orderRequest.quantity());
+        }
+
     }
 
     
